@@ -54,7 +54,7 @@ npm run dist
 
 The portable application is written to `dist/`. Electron and ClamAV are pinned separately. The portable application contains Electron, ONNX Runtime and VirusVaccine; it downloads ClamAV directly from upstream during setup.
 
-After building, `Launch VirusVaccine.cmd` opens the portable application and reuses this checkout's `.runtime` engine when it has already been verified. `node scripts/verify-package.cjs` checks the built application with an isolated profile and harmless file.
+After building, double-click `Launch VirusVaccine.bat` to open the application. It uses the portable executable when available, falls back to the unpacked build, and reuses this checkout's `.runtime` engine when it has already been verified. The `.cmd` launcher also works. `node scripts/verify-package.cjs` checks the built application with an isolated profile and harmless file.
 
 For a development engine stored in this checkout:
 
