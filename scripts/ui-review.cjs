@@ -92,11 +92,26 @@ const contract = require('../docs/ui-contract.json');
     await page.getByRole('button', { name: 'About VirusVaccine', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'No real-time execution blocking' })).toBeVisible();
     await page.getByRole('button', { name: 'Dismiss notification' }).click();
+    await page.getByRole('button', { name: 'Scam & link checks', exact: true }).click();
+    await page.getByLabel('Message text').fill('An example message');
+    await page.evaluate(() => window.reviewPush({ notice: null }));
+    await expect(page.getByLabel('Message text')).toHaveValue('An example message');
+    await page.getByRole('button', { name: 'Check message', exact: true }).click();
+    expect(await page.evaluate(() => window.reviewCalls.some(call => call.action === 'tools:message' && call.payload.text === 'An example message'))).toBe(true);
+    await page.getByRole('button', { name: 'Clear message', exact: true }).click();
+    await expect(page.getByLabel('Message text')).toHaveValue('');
+    await page.getByRole('button', { name: 'Web & privacy', exact: true }).click();
+    await page.getByRole('button', { name: 'Export browser companion' }).click();
+    expect(await page.evaluate(() => window.reviewCalls.some(call => call.action === 'browser:export'))).toBe(true);
+    await page.getByRole('button', { name: 'VPN & identity setup', exact: true }).click();
+    await page.getByRole('button', { name: 'Open WireGuard download page' }).click();
+    await page.getByRole('button', { name: 'Set up breach notifications' }).click();
+    for (const id of ['wireguard','breaches']) expect(await page.evaluate(id => window.reviewCalls.some(call => call.action === 'provider:open' && call.payload.id === id), id)).toBe(true);
     for (const size of [{ width: 1100, height: 760 }, { width: 900, height: 680 }]) {
       await page.setViewportSize(size);
-      for (const route of ['overview', 'scan', 'quarantine', 'history', 'automation', 'system', 'about']) {
+      for (const route of ['overview', 'scan', 'scams', 'privacy', 'providers', 'quarantine', 'history', 'automation', 'system', 'about']) {
         await page.evaluate(route => { window.location.hash = route; }, route);
-        await expect(page.locator('#page-name')).toHaveText(({ overview: 'Overview', scan: 'Scan center', quarantine: 'Quarantine', history: 'Scan history', automation: 'Automation', system: 'System security', about: 'About VirusVaccine' })[route]);
+        await expect(page.locator('#page-name')).toHaveText(({ overview: 'Overview', scan: 'Scan center', scams: 'Scam & link checks', privacy: 'Web & privacy', providers: 'VPN & identity setup', quarantine: 'Quarantine', history: 'Scan history', automation: 'Automation', system: 'System security', about: 'About VirusVaccine' })[route]);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
         await page.screenshot({ path: path.join(output, `${route}-${size.width}.png`), fullPage: true });
       }

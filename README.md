@@ -1,6 +1,6 @@
 # VirusVaccine
 
-An independent, open-source Windows malware scanner with an original desktop interface and the ClamAV scanning engine. **0.1.0 is a functional preview, not a replacement for a complete endpoint-protection suite or a claim of McAfee-equivalent efficacy.**
+An independent, open-source Windows malware scanner with an original desktop interface and the ClamAV scanning engine. **0.2.0 is a functional preview, not a replacement for a complete endpoint-protection suite or a claim of McAfee-equivalent efficacy.**
 
 ![VirusVaccine logo](src/renderer/assets/logo.svg)
 
@@ -16,8 +16,14 @@ An independent, open-source Windows malware scanner with an original desktop int
 | Folder monitoring | Optional scans after changes in selected folders while the app is running |
 | Scheduling | Optional daily quick scan while the app is running; missed time runs when next eligible |
 | System status | Read-only Windows antivirus registrations and firewall profiles; links to Windows settings |
+| Scam and link checks | Offline English-language message heuristics, actual hostname inspection and tracking-parameter removal; no message upload |
+| Browser companion | Separate Chrome/Edge extension with a small third-party tracker blocklist, pause/resume, link tools and confirmed cookie/cache cleanup |
+| Privacy controls | Links to Windows camera, microphone and privacy settings |
+| VPN and breach-alert setup | Official WireGuard and Have I Been Pwned setup flows; services are operated and managed externally |
 
-There is **no execution-blocking driver, ransomware behavior shield, boot-time scanner, web filter, firewall enforcement, VPN, password manager, identity monitoring or recovery service**. Folder monitoring does not stop a file from executing before it is scanned. Antivirus registration is not proof that a product is active. There is no paid subscription or cloud file upload.
+There is **no execution-blocking driver, ransomware behavior shield, boot-time scanner, malicious-site reputation filter, firewall enforcement, built-in VPN, password manager, identity monitoring or recovery service**. Folder monitoring does not stop a file from executing before it is scanned. Antivirus registration is not proof that a product is active. Scam checks are limited heuristics; an absence of warning signs does not establish safety. There is no paid subscription or cloud file upload.
+
+Open **Web & privacy** to export and install the companion in each browser profile. It is not installed automatically or published in an extension store. See the [browser guide](docs/BROWSER.md), [provider setup guide](docs/PROVIDERS.md), and [McAfee feature comparison](docs/PARITY.md).
 
 ## Run on Windows x64
 
@@ -56,7 +62,7 @@ $env:VIRUSVACCINE_RUNTIME_DIR = Join-Path $PWD '.runtime'
 npm start
 ```
 
-`verify:engine` downloads official definitions and tests real ClamAV using ordinary text and a fresh harmless custom signature. `verify:pipeline` exercises the production scanner and encrypted quarantine with another harmless marker. Neither uses live malware or EICAR. `npm run review:ui` requires Microsoft Edge; `npm run review:native` requires the verified `.runtime` engine and opens an isolated Electron test window. Private review artifacts are ignored by Git.
+`verify:engine` downloads official definitions and tests real ClamAV using ordinary text and a fresh harmless custom signature. `verify:pipeline` exercises the production scanner and encrypted quarantine with another harmless marker. Neither uses live malware or EICAR. `npm run review:ui` requires Microsoft Edge; `npm run review:native` requires the verified `.runtime` engine and opens an isolated Electron test window. `npm run review:browser` verifies the companion with Playwright Chromium in a temporary profile; install it using `npx playwright install chromium`. Private review artifacts are ignored by Git.
 
 ## Coverage and evidence
 

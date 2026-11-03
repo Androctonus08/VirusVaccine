@@ -76,14 +76,15 @@
   function bytes(value) { const size = Number(value || 0); if (size < 1024) return `${size} B`; if (size < 1048576) return `${(size / 1024).toFixed(1)} KB`; return `${(size / 1048576).toFixed(1)} MB`; }
   function filename(path) { return String(path || 'Unknown file').split(/[\\/]/).pop() || String(path); }
   function modeLabel(mode) { return ({ quick: 'Quick scan', full: 'Full scan', file: 'File scan', folder: 'Folder scan', custom: 'Custom scan', watch: 'Folder watch', scheduled: 'Scheduled scan' })[mode] || 'Scan'; }
-  const defaults = { version: '0.1.0', engine: { installed: false, ready: false, busy: false, message: 'Install the scanning engine to begin' }, scan: { status: 'idle', scanned: 0, total: 0, skipped: 0, errors: 0, detections: [] }, history: [], quarantine: [], watch: { enabled: false, folders: [], message: 'Off' }, schedule: { enabled: false, hour: 12 }, system: { antivirus: [], firewall: [], message: 'Checking Windows security status' }, activities: [], notice: null };
+  const defaults = { version: '0.2.0', engine: { installed: false, ready: false, busy: false, message: 'Install the scanning engine to begin' }, scan: { status: 'idle', scanned: 0, total: 0, skipped: 0, errors: 0, detections: [] }, history: [], quarantine: [], watch: { enabled: false, folders: [], message: 'Off' }, schedule: { enabled: false, hour: 12 }, system: { antivirus: [], firewall: [], message: 'Checking Windows security status' }, activities: [], notice: null };
   let state = defaults;
   let loaded = false;
   let route = 'overview';
   let lastNotice = '';
   let toastTimer;
   const pending = new Set();
-  const routes = [ ['overview', 'Overview', 'grid'], ['scan', 'Scan center', 'scan'], ['quarantine', 'Quarantine', 'quarantine'], ['history', 'Scan history', 'history'], ['automation', 'Automation', 'automation'], ['system', 'System security', 'device'] ];
+  const routes = [ ['overview', 'Overview', 'grid'], ['scan', 'Scan center', 'scan'], ['scams', 'Scam & link checks', 'shield'], ['privacy', 'Web & privacy', 'eye'], ['providers', 'VPN & identity setup', 'network'], ['quarantine', 'Quarantine', 'quarantine'], ['history', 'Scan history', 'history'], ['automation', 'Automation', 'automation'], ['system', 'System security', 'device'] ];
+  const drafts = { message: '', link: '', messageResult: null, linkResult: null, cleaned: null, exportPath: '' };
   const pageNames = Object.fromEntries([...routes, ['about', 'About VirusVaccine']]);
   const main = $('#main');
   const activeScan = () => ['running', 'starting', 'preparing', 'enumerating', 'scanning', 'finishing', 'cancelling'].includes(state.scan.status);
@@ -200,6 +201,9 @@
     if (latest) append(activity, statusRow(modeLabel(latest.mode), historyStatus(latest)), statusRow('Files checked', number(latest.scanned), 'file'), statusRow('Detections', number(latest.threats), 'scan'), node('p', 'card-footnote', date(latest.finishedAt || latest.startedAt, true)));
     else append(activity, append(node('p', 'empty-inline'), icon('history', 18), node('span', '', 'Your scan history starts here.')), node('p', 'card-footnote', 'Run your first scan to see its results, file count, and time. No files have been checked yet.'));
     append(view, sectionHeading('At a glance'), append(node('div', 'two-columns'), engine, activity));
+    const tools = node('div', 'tool-grid');
+    for (const [target, title, description, symbol] of [['scams','Scam & link checks','Review messages and suspicious links locally.','shield'],['privacy','Web & privacy','Block selected trackers and clear browser traces with the companion.','eye'],['providers','VPN & identity setup','Set up services managed by external providers.','network']]) append(tools, append(node('section','card tool-card'), tileIcon(symbol), node('h3','',title), node('p','',description), button('Open '+title.toLowerCase(),{className:'link-button',icon:'arrow',onClick:()=>navigate(target)})));
+    append(view, sectionHeading('Beyond file scanning'), tools);
     return view;
   }
   function historyStatus(item) {
@@ -304,26 +308,74 @@
     append(view, append(node('div', 'two-columns'), antivirus, firewall), node('p', 'card-footnote', state.system.message || 'Windows status is a point-in-time snapshot, not a verification of protection.'));
     return view;
   }
+  function toolInput(id, label, multiline = false) {
+    const field = node(multiline ? 'textarea' : 'input', 'tool-input');
+    field.id = `tool-${id}`; field.dataset.focus = field.id; field.value = drafts[id]; field.maxLength = 4000; field.spellcheck = false; field.autocomplete = 'off';
+    if (multiline) field.rows = 5; else field.type = 'text';
+    field.placeholder = multiline ? 'Paste a suspicious message here…' : 'https://example.com/?utm_source=newsletter';
+    field.addEventListener('input', () => { drafts[id] = field.value; drafts[id === 'message' ? 'messageResult' : 'linkResult'] = null; if(id === 'link') drafts.cleaned = null; document.querySelectorAll(`[data-result="${id}"]`).forEach(element => element.remove()); });
+    const title = node('label','tool-label',label); title.htmlFor = field.id;
+    return append(node('div'), title, field);
+  }
+  function analysisResult(result, id) {
+    const box = node('div','tool-result'); box.dataset.result = id; box.setAttribute('aria-live','polite');
+    append(box,node('h3','',result.verdict));
+    if(result.hostname) append(box,node('p','actual-host','Actual hostname: '+result.hostname));
+    const reasons = node('ul','tool-reasons'); for(const reason of result.reasons || []) append(reasons,node('li','',reason)); append(box,reasons);
+    for(const link of result.links || []) append(box, analysisResult(link,id));
+    if(result.omittedLinks) append(box,node('p','',`${result.omittedLinks} additional links were not checked. Check them individually.`));
+    if(result.limitation) append(box,node('p','card-footnote',result.limitation)); return box;
+  }
+  function renderScams() {
+    const view = document.createDocumentFragment();
+    append(view,heading('Scam & link checks','Take a closer look before you click, pay, or share a code.',pill('Offline checks','blue')),notice('These checks identify common warning signs. They do not verify a sender, visit links, or determine whether something is safe. Pasted content is not saved or uploaded.'));
+    const message = append(node('section','card tool-card'),node('h2','','Check a message'),node('p','','Paste the text of an email, SMS, or chat message. English-language patterns check for urgency, credential requests, payment pressure, and suspicious links.'),toolInput('message','Message text',true));
+    append(message,append(node('div','tool-actions'),button('Check message',{icon:'shield',key:'check-message',disabled:pending.has('tools:message'),onClick:async()=>{drafts.messageResult=await invoke('tools:message',{text:drafts.message});render();}}),button('Clear message',{className:'button secondary',onClick:()=>{drafts.message='';drafts.messageResult=null;render();}})));
+    if(drafts.messageResult) append(message,analysisResult(drafts.messageResult,'message'));
+    const link = append(node('section','card tool-card'),node('h2','','Inspect a link'),node('p','','Reveal the actual hostname and remove common tracking parameters. Neither action opens the link.'),toolInput('link','Web link'));
+    append(link,append(node('div','tool-actions'),button('Check link',{icon:'eye',key:'check-link',disabled:pending.has('tools:link'),onClick:async()=>{drafts.linkResult=await invoke('tools:link',{text:drafts.link});drafts.cleaned=null;render();}}),button('Remove tracking parameters',{className:'button secondary',icon:'trash',key:'clean-link',disabled:pending.has('tools:clean-link'),onClick:async()=>{drafts.cleaned=await invoke('tools:clean-link',{text:drafts.link});drafts.linkResult=null;render();}}),button('Clear link',{className:'link-button',onClick:()=>{drafts.link='';drafts.linkResult=null;drafts.cleaned=null;render();}})));
+    if(drafts.linkResult) append(link,analysisResult(drafts.linkResult,'link'));
+    if(drafts.cleaned) {const box=node('div','tool-result');box.dataset.result='link';const output=node('textarea','tool-input');output.readOnly=true;output.value=drafts.cleaned.url;output.setAttribute('aria-label','Cleaned link');output.rows=3;append(box,node('h3','','Cleaned link'),node('p','',drafts.cleaned.note),output,node('p','card-footnote','Select and copy the link when you are ready. Removing parameters does not make a destination trustworthy.'));append(link,box);}
+    append(view,message,link); return view;
+  }
+  function steps(items) { const list=node('ol','setup-steps');for(const item of items) append(list,node('li','',item));return list; }
+  function renderPrivacy() {
+    const view=document.createDocumentFragment();
+    append(view,heading('Web & privacy','Add privacy tools to the browser profiles you choose.',pill('Companion setup','blue')));
+    const browser=append(node('section','card tool-card'),append(node('div','card-title-row'),node('h2','','Browser companion'),pill('Install separately','amber')),node('p','','For Chrome and Microsoft Edge on desktop. Blocks third-party requests to a small list of 12 ad/analytics domains. Includes offline link checks, a URL cleaner, and confirmed cookie/cache cleanup.'),notice('The desktop app cannot verify installation or blocking status. Open the companion in each browser to see its actual status. This is not a malicious-site reputation service.'));
+    append(browser,steps(['Export the companion into a folder you can keep.','Open edge://extensions or chrome://extensions in that browser. Enable Developer mode.','Choose Load unpacked and select the exported VirusVaccineBrowser-0.2.0 folder. Review the requested permissions.','Pin VirusVaccine Browser Companion. Open it to see blocking status, pause the rules, or clear selected browser data.']),button('Export browser companion',{icon:'download',key:'export-browser',disabled:pending.has('browser:export'),onClick:async()=>{const result=await invoke('browser:export');if(result?.path){drafts.exportPath=result.path;render();}}}));
+    if(drafts.exportPath) append(browser,notice('Saved to: '+drafts.exportPath,'blue'));
+    const cleanup=append(node('section','card tool-card'),node('h2','','Tracker and browser-trace cleanup'),node('p','','Open the companion → Clear browser traces. Choose a time range and cached files or cookies, review the impact, then confirm deletion. Cookie deletion can sign you out. Saved passwords, history, bookmarks and other profiles are kept.'),node('p','card-footnote','Only the browser profile where the companion is installed is affected. This does not remove every tracking method or data held by websites. No browser data is read or cleaned from the desktop app.'));
+    const windows=append(node('section','card tool-card'),node('h2','','Windows privacy controls'),node('p','','Review which apps can use your camera and microphone. Windows shows your current settings and applies changes you choose.'),append(node('div','tool-actions'),button('Camera permissions',{className:'button secondary',icon:'external',onClick:()=>invoke('system:open',{page:'camera'})}),button('Microphone permissions',{className:'button secondary',icon:'external',onClick:()=>invoke('system:open',{page:'microphone'})}),button('All privacy settings',{className:'link-button',onClick:()=>invoke('system:open',{page:'privacy'})})));
+    append(view,browser,cleanup,windows);return view;
+  }
+  function renderProviders() {
+    const view=document.createDocumentFragment();append(view,heading('VPN & identity setup','Connect with services operated by a provider you choose.',pill('Provider managed','blue')),notice('These are setup guides and official provider links. VirusVaccine does not establish a VPN tunnel, monitor your identity, or verify provider status. Complete setup and check protection in the provider’s own app or website.'));
+    const vpn=append(node('section','card tool-card'),tileIcon('network'),node('h2','','VPN with WireGuard'),node('p','','WireGuard is a VPN client. You also need a VPN provider or a server you operate; downloading the client alone does not create a private connection.'),steps(['Choose a provider that supports WireGuard and obtain its configuration through your provider account.','Install the official WireGuard Windows client.','Import the configuration in WireGuard. It contains private keys: keep it out of public repositories and support screenshots.','Activate the tunnel in WireGuard and verify connection, DNS and leak-protection options with your provider.']),button('Open WireGuard download page',{icon:'external',key:'open-vpn-provider',onClick:()=>invoke('provider:open',{id:'wireguard'})}));
+    const identity=append(node('section','card tool-card'),tileIcon('eye','teal'),node('h2','','Breach alerts with Have I Been Pwned'),node('p','','Get provider-managed email breach notifications. This covers breaches known to that service; it is not full identity theft monitoring, credit monitoring, or identity recovery.'),steps(['Open the official notification signup page.','Enter your email directly with the provider and review its terms.','Verify your email using the link the provider sends.','Handle alerts in the provider service. VirusVaccine does not receive your email, alerts or account credentials.']),button('Set up breach notifications',{icon:'external',key:'open-identity-provider',onClick:()=>invoke('provider:open',{id:'breaches'})}));
+    append(view,append(node('div','two-columns'),vpn,identity),button('Provider integration guide',{className:'link-button',icon:'external',onClick:()=>invoke('provider:open',{id:'integrationDocs'})}));return view;
+  }
   function renderAbout() {
     const view = document.createDocumentFragment();
     append(view, heading('Built for a second look', 'Understand what VirusVaccine does—and where its protection ends.'));
     const card = node('section', 'card'); const image = node('img'); image.src = 'assets/logo.svg'; image.alt = ''; image.width = 54; image.height = 59;
     append(card, append(node('div', 'about-brand'), image, append(node('div'), node('h2', '', 'VirusVaccine'), node('p', '', `Version ${state.version} · Independent, open-source desktop scanner`))), node('p', 'about-text', 'VirusVaccine brings an independent ClamAV malware scanning engine into a clear, local desktop workspace. It can inspect accessible files, report engine detections, and isolate files you choose. It is an early release and has not been independently benchmarked against commercial antivirus suites.'), node('p', 'about-text', 'Your files stay on your computer. Engine setup and threat-definition updates require an internet connection. Scan results, settings, history, and the quarantine vault are stored locally. The application is not affiliated with or endorsed by McAfee. ClamAV® is a trademark of Cisco Systems, Inc.'));
     const list = node('div', 'capability-list');
-    const capabilities = [['On-demand malware scans', 'Quick checks and file, folder, or selected drive scans powered by ClamAV signatures.', 'scan', true], ['Quarantine you control', 'Move detected files into a local vault, restore them, or permanently delete them.', 'quarantine', true], ['Optional automation', 'Check changed files in selected folders or run a daily quick scan while the app remains open.', 'automation', true], ['Transparent scan coverage', 'Review detected, skipped, and inaccessible files. Partial checks are never a guarantee of safety.', 'history', true], ['No real-time execution blocking', 'Folder watch checks after changes. No kernel driver, boot-time scanning, or ransomware behavior shield is installed.', 'lock', false], ['No VPN or identity monitoring', 'No VPN service, identity recovery, browser filtering, firewall enforcement, or commercial feature-parity claim.', 'network', false]];
+    const capabilities = [['On-demand malware scans', 'Quick checks and file, folder, or selected drive scans powered by ClamAV signatures.', 'scan', true], ['Quarantine you control', 'Move detected files into a local vault, restore them, or permanently delete them.', 'quarantine', true], ['Optional automation', 'Check changed files in selected folders or run a daily quick scan while the app remains open.', 'automation', true], ['Transparent scan coverage', 'Review detected, skipped, and inaccessible files. Partial checks are never a guarantee of safety.', 'history', true], ['No real-time execution blocking', 'Folder watch checks after changes. No kernel driver, boot-time scanning, or ransomware behavior shield is installed.', 'lock', false], ['Scam and browser privacy tools', 'Offline message/link checks and a separately installed browser companion for selected trackers and confirmed cleanup.', 'eye', true], ['Provider setup guides', 'WireGuard and breach-alert signup links. Provider services are managed externally; there is no integrated VPN or identity monitor.', 'network', false]];
     for (const [title, description, symbol, available] of capabilities) append(list, append(node('div', `capability${available ? '' : ' unavailable'}`), icon(symbol, 18), append(node('div'), node('h3', '', title), node('p', '', description))));
     append(card, list, append(node('div', 'about-actions'), button('View source on GitHub', { className: 'button secondary', icon: 'external', key: 'open-website', onClick: () => invoke('app:website') }), button('Open local app data', { className: 'button secondary', icon: 'folder', key: 'open-data', onClick: () => invoke('app:open-data') })));
     append(view, card); return view;
   }
-  const renderers = { overview: renderOverview, scan: renderScan, quarantine: renderQuarantine, history: renderHistory, automation: renderAutomation, system: renderSystem, about: renderAbout };
+  const renderers = { overview: renderOverview, scan: renderScan, scams: renderScams, privacy: renderPrivacy, providers: renderProviders, quarantine: renderQuarantine, history: renderHistory, automation: renderAutomation, system: renderSystem, about: renderAbout };
   function render() {
     document.querySelectorAll('[data-route]').forEach((item) => { const active = item.dataset.route === route; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current'); });
     $('#page-name').textContent = pageNames[route]; $('#version').textContent = `OPEN SOURCE · V${state.version}`;
     if (!loaded) return;
     const focusKey = document.activeElement?.dataset.focus;
+    const selection = document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.type === 'text' ? [document.activeElement.selectionStart,document.activeElement.selectionEnd] : null;
     const oldScroll = window.scrollY;
     main.replaceChildren(renderers[route]());
-    if (focusKey) { const target = Array.from(document.querySelectorAll('[data-focus]')).find((element) => element.dataset.focus === focusKey); if (target && !target.disabled) target.focus({ preventScroll: true }); }
+    if (focusKey) { const target = Array.from(document.querySelectorAll('[data-focus]')).find((element) => element.dataset.focus === focusKey); if (target && !target.disabled) { target.focus({ preventScroll: true }); if(selection && target.setSelectionRange) target.setSelectionRange(...selection); } }
     if (window.scrollY !== oldScroll) window.scrollTo(0, oldScroll);
   }
   if (window.vaccine) {

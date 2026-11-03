@@ -1,38 +1,126 @@
 {
   "bridge": "window.vaccine.invoke(action, payload) and window.vaccine.subscribe(callback) returning unsubscribe",
   "state": {
-    "version": "0.1.0",
-    "engine": {"installed": false, "version": null, "ready": false, "definitionsUpdatedAt": null, "busy": false, "message": "Install the scanning engine to begin", "progress": null},
-    "scan": {"id": null, "status": "idle", "mode": null, "startedAt": null, "finishedAt": null, "scanned": 0, "total": 0, "skipped": 0, "errors": 0, "current": "", "detections": [], "message": "", "elapsedMs": 0},
+    "version": "0.2.0",
+    "engine": {
+      "installed": false,
+      "version": null,
+      "ready": false,
+      "definitionsUpdatedAt": null,
+      "busy": false,
+      "message": "Install the scanning engine to begin",
+      "progress": null
+    },
+    "scan": {
+      "id": null,
+      "status": "idle",
+      "mode": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "scanned": 0,
+      "total": 0,
+      "skipped": 0,
+      "errors": 0,
+      "current": "",
+      "detections": [],
+      "message": "",
+      "elapsedMs": 0
+    },
     "history": [],
     "quarantine": [],
-    "watch": {"enabled": false, "folders": [], "message": "Off"},
-    "schedule": {"enabled": false, "hour": 12, "lastRun": null},
-    "system": {"antivirus": [], "firewall": [], "message": "Checking Windows security status"},
+    "watch": {
+      "enabled": false,
+      "folders": [],
+      "message": "Off"
+    },
+    "schedule": {
+      "enabled": false,
+      "hour": 12,
+      "lastRun": null
+    },
+    "system": {
+      "antivirus": [],
+      "firewall": [],
+      "message": "Checking Windows security status"
+    },
     "activities": [],
     "notice": null
   },
-  "detection": {"id": "uuid", "path": "absolute path", "name": "engine detection", "sha256": "hash", "size": 0, "quarantined": false},
-  "quarantine": {"id": "uuid", "name": "threat name", "originalPath": "path", "size": 0, "createdAt": "ISO date"},
-  "history": {"id": "uuid", "mode": "custom", "status": "completed|partial|cancelled|failed", "scanned": 0, "skipped": 0, "errors": 0, "threats": 0, "startedAt": "ISO date", "finishedAt": "ISO date", "elapsedMs": 0},
+  "detection": {
+    "id": "uuid",
+    "path": "absolute path",
+    "name": "engine detection",
+    "sha256": "hash",
+    "size": 0,
+    "quarantined": false
+  },
+  "quarantine": {
+    "id": "uuid",
+    "name": "threat name",
+    "originalPath": "path",
+    "size": 0,
+    "createdAt": "ISO date"
+  },
+  "history": {
+    "id": "uuid",
+    "mode": "custom",
+    "status": "completed|partial|cancelled|failed",
+    "scanned": 0,
+    "skipped": 0,
+    "errors": 0,
+    "threats": 0,
+    "startedAt": "ISO date",
+    "finishedAt": "ISO date",
+    "elapsedMs": 0
+  },
   "actions": {
     "state:get": null,
     "engine:install": null,
     "engine:update": null,
-    "scan:start": {"mode": "quick|full|file|folder"},
+    "scan:start": {
+      "mode": "quick|full|file|folder"
+    },
     "scan:cancel": null,
     "scan:export": null,
-    "quarantine:add": {"id": "detection id"},
-    "quarantine:restore": {"id": "quarantine id"},
-    "quarantine:delete": {"id": "quarantine id"},
+    "quarantine:add": {
+      "id": "detection id"
+    },
+    "quarantine:restore": {
+      "id": "quarantine id"
+    },
+    "quarantine:delete": {
+      "id": "quarantine id"
+    },
     "watch:add": null,
-    "watch:remove": {"path": "existing watch folder path"},
-    "watch:toggle": {"enabled": true},
-    "schedule:set": {"enabled": true, "hour": 12},
+    "watch:remove": {
+      "path": "existing watch folder path"
+    },
+    "watch:toggle": {
+      "enabled": true
+    },
+    "schedule:set": {
+      "enabled": true,
+      "hour": 12
+    },
     "system:refresh": null,
-    "system:open": {"page": "security|firewall"},
+    "system:open": {
+      "page": "security|firewall"
+    },
     "app:open-data": null,
-    "app:website": null
+    "app:website": null,
+    "tools:message": {
+      "text": "message up to 4000 characters"
+    },
+    "tools:link": {
+      "text": "http(s) URL"
+    },
+    "tools:clean-link": {
+      "text": "http(s) URL"
+    },
+    "browser:export": null,
+    "provider:open": {
+      "id": "wireguard|breaches|breachAccount|integrationDocs"
+    }
   },
   "rules": [
     "All scan targets are chosen by a native file/folder dialog or the fixed quick-scan profile. No browser path inputs.",

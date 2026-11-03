@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "VirusVaccine Browser Companion",
+  "version": "0.2.0",
+  "description": "Local link checks, a small third-party tracker blocklist, and user-confirmed cookie/cache cleanup. No telemetry.",
+  "minimum_chrome_version": "120",
+  "permissions": ["declarativeNetRequest", "browsingData"],
+  "action": { "default_title": "VirusVaccine privacy tools", "default_popup": "popup.html" },
+  "declarative_net_request": { "rule_resources": [{ "id": "trackers", "enabled": true, "path": "trackers.json" }] },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'; base-uri 'none'" }
+}

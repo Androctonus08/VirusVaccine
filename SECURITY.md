@@ -1,6 +1,6 @@
 # Security scope
 
-VirusVaccine 0.1.0 is an early Windows x64 scanner. It has not undergone an independent security audit, malicious-corpus efficacy evaluation or adversarial tamper-resistance review. Do not disable an existing endpoint-security product to use it.
+VirusVaccine 0.2.0 is an early Windows x64 scanner. It has not undergone an independent security audit, malicious-corpus efficacy evaluation or adversarial tamper-resistance review. Do not disable an existing endpoint-security product to use it.
 
 ## Boundaries
 
@@ -11,6 +11,9 @@ VirusVaccine 0.1.0 is an early Windows x64 scanner. It has not undergone an inde
 - Restore verifies authentication and SHA-256 and creates a new destination exclusively. It never silently overwrites a file. The encrypted copy remains until explicit deletion. A crash or I/O failure can leave a recovery copy/staging file; do not delete it until recovery has been checked.
 - File-change monitoring is best effort and can miss events or exceed its queue. It runs only while the app is alive and does not intercept file execution. Scheduling has the same application-lifetime boundary.
 - The application does not upload scanned files or reports. Engine downloads and definition updates contact the upstream services. Windows itself and an existing antivirus may separately inspect files and network traffic.
+- Message and link checks are bounded, offline heuristics, not a scam classifier or reputation service. Drafts are kept only in memory until cleared or the app exits. No safe verdict is returned. Suspicious text is rendered using text nodes, never HTML.
+- The separately installed browser companion uses a fixed third-party tracker ruleset and the browser's own cleanup API. Cookies are unselected by default; deletion requires explicit confirmation. It requests no access to page contents, no native messaging connection and no telemetry. A small blocklist is incomplete and can break sites; it can be paused. See [browser scope](docs/BROWSER.md).
+- Provider links are fixed official HTTPS destinations opened only after a button click. No provider credentials, VPN configurations or email addresses are collected. Provider-managed protection is not verified or represented as active by VirusVaccine.
 
 ## Reporting a vulnerability
 

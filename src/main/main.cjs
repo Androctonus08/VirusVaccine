@@ -11,6 +11,7 @@ const { Quarantine } = require('./quarantine.cjs');
 const { Store } = require('./storage.cjs');
 const { key, within } = require('./files.cjs');
 const { securityStatus } = require('./system.cjs');
+const protection = require('./protection.cjs');
 
 if (!app.isPackaged && process.env.VIRUSVACCINE_DATA_DIR) app.setPath('userData', path.resolve(process.env.VIRUSVACCINE_DATA_DIR));
 if (!app.requestSingleInstanceLock()) { app.quit(); }
@@ -92,6 +93,16 @@ else {
     if (action === 'state:get') return snapshot();
     if (!initialized) throw new Error('VirusVaccine is still starting');
     notice = null;
+    if (action === 'tools:message' || action === 'tools:link' || action === 'tools:clean-link') {
+      checkObject(payload);
+      return protection[action === 'tools:message' ? 'analyzeMessage' : action === 'tools:link' ? 'analyzeUrl' : 'cleanUrl'](payload.text);
+    }
+    if (action === 'browser:export') {
+      const selection = await dialog.showOpenDialog(window, { title: 'Choose where to save the browser companion folder', properties: ['openDirectory','createDirectory','dontAddToRecent'] });
+      if (selection.canceled || !selection.filePaths.length) return { cancelled: true };
+      return protection.exportCompanion(path.resolve(__dirname, '../companion'), selection.filePaths[0]);
+    }
+    if (action === 'provider:open') { checkObject(payload); await shell.openExternal(protection.providerUrl(payload.id)); return {}; }
     if (action === 'engine:install' || action === 'engine:update') {
       assertIdle(); maintenance = true;
       return background((async () => { try { await engine[action === 'engine:install' ? 'install' : 'update'](); store.activity('Engine updated', 'Official ClamAV engine and signature status checked'); await store.save(); } finally { maintenance = false; engineState = await engine.status(); emit(); } })());
@@ -149,7 +160,7 @@ else {
     if (action === 'watch:toggle') { checkObject(payload); if (typeof payload.enabled !== 'boolean') throw new Error('Invalid monitoring choice'); if (payload.enabled && !engineState.ready) throw new Error('Set up the engine first'); store.data.watch.enabled = payload.enabled; await store.save(); await setWatchers(); return snapshot(); }
     if (action === 'schedule:set') { checkObject(payload); if (typeof payload.enabled !== 'boolean' || !Number.isInteger(payload.hour) || payload.hour < 0 || payload.hour > 23) throw new Error('Choose an hour from 0 to 23'); if (payload.enabled && !engineState.ready) throw new Error('Set up the engine first'); store.data.schedule = { ...store.data.schedule, enabled: payload.enabled, hour: payload.hour }; await store.save(); emit(); return snapshot(); }
     if (action === 'system:refresh') return background(refreshSystem());
-    if (action === 'system:open') { checkObject(payload); const url = { security: 'windowsdefender:', firewall: 'windowsdefender://network/' }[payload.page]; if (!url) throw new Error('Unknown Windows settings page'); await shell.openExternal(url); return {}; }
+    if (action === 'system:open') { checkObject(payload); const pages = { security: 'windowsdefender:', firewall: 'windowsdefender://network/', privacy: 'ms-settings:privacy', camera: 'ms-settings:privacy-webcam', microphone: 'ms-settings:privacy-microphone' }; const url = Object.hasOwn(pages, payload.page) ? pages[payload.page] : null; if (!url) throw new Error('Unknown Windows settings page'); await shell.openExternal(url); return {}; }
     if (action === 'app:open-data') { const error = await shell.openPath(dataDir); if (error) throw new Error(error); return {}; }
     if (action === 'app:website') { await shell.openExternal('https://github.com/Androctonus08/VirusVaccine'); return {}; }
     throw new Error('Unsupported action');

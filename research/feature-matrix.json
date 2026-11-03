@@ -60,8 +60,8 @@
     {
       "id": "tracker_cleanup",
       "name": "Tracker and temporary-file cleanup",
-      "implementation": "not implemented",
-      "design_requirement": "Offer a reviewable inventory and explicit consent before cleanup; default away from cookies/history that can log users out."
+      "implementation": "partial: companion cookie/cache cleanup per browser profile",
+      "design_requirement": "Require explicit selection and confirmation. Cookies default off. Keep history, passwords, bookmarks and unrelated profile data. No system cleanup."
     },
     {
       "id": "file_shredder",
@@ -72,14 +72,14 @@
     {
       "id": "vpn",
       "name": "Secure VPN",
-      "implementation": "not implemented",
-      "design_requirement": "VPN requires separately operated or integrated infrastructure. Do not present a cosmetic VPN toggle as working protection."
+      "implementation": "external provider setup only",
+      "design_requirement": "Guide official WireGuard client and provider configuration; no tunnel control or claimed connection state."
     },
     {
       "id": "web_protection",
       "name": "Per-browser web protection",
-      "implementation": "not implemented",
-      "design_requirement": "A browser extension and threat feed would be separate work. UI must distinguish not-installed, active and unavailable states."
+      "implementation": "partial: tracker rules and offline link checks",
+      "design_requirement": "Companion blocks a small packaged third-party tracker list; no phishing/malware reputation feed. Desktop cannot verify installation."
     },
     {
       "id": "password_manager",
@@ -90,20 +90,20 @@
     {
       "id": "identity_monitoring",
       "name": "Identity monitoring",
-      "implementation": "not implemented",
-      "design_requirement": "Requires separate identity/breach services and user consent. Mark unavailable rather than fabricate a monitoring result."
+      "implementation": "external provider setup only",
+      "design_requirement": "Guide HIBP breach-alert signup; email and notifications stay with the provider. No integrated identity monitor."
     },
     {
       "id": "text_scams",
       "name": "Text-scam protection",
-      "implementation": "not implemented",
-      "design_requirement": "Keep mobile messaging analysis separate from the desktop file scanner."
+      "implementation": "partial: manual offline message checks",
+      "design_requirement": "Pasted English-language text receives bounded heuristic explanations; no automatic SMS integration or trained scam classifier."
     },
     {
       "id": "email_scams",
       "name": "Email-scam protection",
-      "implementation": "not implemented",
-      "design_requirement": "Requires an independently designed mail integration with narrow permissions and explicit user consent."
+      "implementation": "partial: manual offline message checks",
+      "design_requirement": "Paste message text for local heuristics; no inbox access, sender authentication or automatic email monitoring."
     },
     {
       "id": "video_scams",

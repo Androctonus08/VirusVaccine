@@ -1,6 +1,6 @@
 {
   "name": "virusvaccine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Independent, open-source desktop malware scanner powered by ClamAV",
   "main": "src/main/main.cjs",
   "author": "VirusVaccine contributors",
@@ -13,7 +13,8 @@
     "verify:engine": "node scripts/verify-engine.cjs",
     "verify:pipeline": "node scripts/verify-pipeline.cjs",
     "review:ui": "node scripts/ui-review.cjs",
-    "review:native": "node scripts/native-review.cjs"
+    "review:native": "node scripts/native-review.cjs",
+    "review:browser": "node scripts/browser-review.cjs"
   },
   "devDependencies": {
     "electron": "45.2.1",
@@ -24,9 +25,25 @@
     "appId": "org.virusvaccine.desktop",
     "productName": "VirusVaccine",
     "asar": true,
-    "files": ["src/**/*", "LICENSE", "THIRD_PARTY_NOTICES.txt", "package.json"],
-    "directories": {"output": "dist"},
-    "win": {"target": ["portable"], "icon": "src/renderer/assets/icon.ico", "signExecutable": false},
-    "portable": {"artifactName": "VirusVaccine-${version}-win-x64.exe"}
+    "files": [
+      "src/**/*",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.txt",
+      "package.json",
+      "!src/companion/_metadata/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "src/renderer/assets/icon.ico",
+      "signExecutable": false
+    },
+    "portable": {
+      "artifactName": "VirusVaccine-${version}-win-x64.exe"
+    }
   }
 }

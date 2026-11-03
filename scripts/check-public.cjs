@@ -3,7 +3,7 @@
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
-const disallowed = files.filter(file => /(^|\/)(private|review|\.runtime|node_modules)(\/|$)|(^|\/)\.env|\.(?:dpapi|vvq|p8|pfx|pem|key|cvd|cld|ndb)$/.test(file));
+const disallowed = files.filter(file => /(^|\/)(private|review|\.runtime|node_modules|_metadata)(\/|$)|(^|\/)\.env|\.(?:dpapi|vvq|p8|pfx|pem|key|cvd|cld|ndb)$/.test(file));
 if (disallowed.length) throw new Error('Local or private artifacts are tracked: ' + disallowed.join(', '));
 const scope = JSON.parse(fs.readFileSync('research/feature-matrix.json', 'utf8'));
 const allowed = new Set(['schema_version', 'title', 'scope', 'features']);

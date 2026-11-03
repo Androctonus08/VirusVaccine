@@ -27,3 +27,4 @@ playwright-report/
 # Local observations and execution reports must never be published.
 review/
 docs/assets/
+src/companion/_metadata/
