@@ -16,11 +16,13 @@ test('firewall scripts quote paths and limit removal to owned identifiers',()=>{
   assert.doesNotMatch(script,/Set-NetFirewallProfile|Disable-NetFirewall|Remove-NetFirewallRule/);
 });
 test('firewall selection rejects system components and linked executables',async()=>{
-  const root=await fs.mkdtemp(path.join(os.tmpdir(),'vv-firewall-input-'));try{
+  // Windows runners may expose TEMP through an 8.3 alias. The fixture must use
+  // the same expanded path a native executable picker supplies.
+  const temporary=await fs.realpath(os.tmpdir());const root=await fs.mkdtemp(path.join(temporary,'vv-firewall-input-'));try{
     const file=path.join(root,'client.exe');await fs.writeFile(file,'harmless fixture');assert.equal((await firewall.target(file)).path,file);
     const link=path.join(root,'alias.exe');await fs.link(file,link);await assert.rejects(firewall.target(file),/ordinary/);
     await fs.mkdir(path.join(root,'McAfee'));const protectedFile=path.join(root,'McAfee','client.exe');await fs.writeFile(protectedFile,'fixture');await assert.rejects(firewall.target(protectedFile),/does not block/);
-  }finally{assert.equal(path.dirname(root),os.tmpdir());await fs.rm(root,{recursive:true,force:true});}
+  }finally{assert.equal(path.dirname(root),temporary);await fs.rm(root,{recursive:true,force:true});}
 });
 test('uninstalled media models cannot produce a result',async()=>{
   const m=new Media(path.join(os.tmpdir(),'missing-media-assets'));await m.status();assert.equal(m.state.ready,false);await assert.rejects(m.analyze('C:\\fixture.mp4'),/Set up/);assert.equal(m.state.result,null);
