@@ -28,3 +28,9 @@ playwright-report/
 review/
 docs/assets/
 src/companion/_metadata/
+
+*.sys
+*.obj
+*.pdb
+*.onnx
+*.nupkg

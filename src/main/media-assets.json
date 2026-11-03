@@ -1,0 +1,33 @@
+{
+  "vision": {
+    "name": "vision.onnx",
+    "url": "https://huggingface.co/onnx-community/Deep-Fake-Detector-v2-Model-ONNX/resolve/4ea3d66dfb1bedca29727c6a0c6fa061d5f3f9c9/onnx/model_uint8.onnx",
+    "bytes": 87333629,
+    "sha256": "3519c22b9695f99ddc00821228eeac91239065a90bfbdb4917858b3ec1dcfc42"
+  },
+  "audio": {
+    "name": "audio.onnx",
+    "url": "https://huggingface.co/Red-had1911/deepfake-detector-onnx/resolve/ae9cd3258b714a4afa4766c8c4de30bbde53dc0d/audio_deepfake_detector.onnx",
+    "bytes": 378515779,
+    "sha256": "c63c12b27aa245a6cfa54091b57a6b8a6192f0650dcd0e99490f9d1ca6c4ca0d"
+  },
+  "decoder": {
+    "name": "decoder.zip",
+    "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-11-02-12-51/ffmpeg-n8.1.3-32-g760d10603e-win64-lgpl-shared-8.1.zip",
+    "bytes": 80357941,
+    "sha256": "424ee1ebefd41bda90247db6a08d510d11e14a20ca19ecc168a50d4e63eb7fee",
+    "folder": "ffmpeg-n8.1.3-32-g760d10603e-win64-lgpl-shared-8.1",
+    "files": {
+      "avcodec-62.dll": "b8940df8ea0b5caebe1e3215c5c4a4aaa9cb77aa396cc16f247a81d77a720915",
+      "avdevice-62.dll": "9cc4fe767668b57c8a1b871c8894cb44e3815bce08fe12eef2c8f75f375eb5ff",
+      "avfilter-11.dll": "4c8df157a352fed1fa22236f24c56f37fc98a46783e409718995259d3a343a4a",
+      "avformat-62.dll": "f29ac8722893e33733800a7238ab831dfb0e6b3a7c46f652d8f23c17b177a5fd",
+      "avutil-60.dll": "644fe99cf20b8e9f5acb8c64fae1357e3d7295cb542ed9129cb4b73c67da6d88",
+      "ffmpeg.exe": "3a23c1668912d2ff78cccae3499517a1a0e1ddf84a9538c5d8a9131331d142ba",
+      "ffplay.exe": "130f7099a0ee9b0a2325032e2b53b85c8cc799233a6f60b1d2810420434d596e",
+      "ffprobe.exe": "85471c4d6a434eac5fe48846ba0bcb3ac33adcbd43888bee31523ea1baa013b3",
+      "swresample-6.dll": "74fa22fab778ff242d01b8b581e594533ccf1a97475211f247baaca5e4b6ba24",
+      "swscale-9.dll": "3e0a037f8041f3284e4ee4d91f87ba4a10569fbe5033e672b61b4dc28fab3aea"
+    }
+  }
+}

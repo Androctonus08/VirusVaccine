@@ -1,6 +1,6 @@
 # McAfee and VirusVaccine feature comparison
 
-**VirusVaccine 0.2.0 does not have feature or protection parity with McAfee.** It implements useful local scanning, quarantine, manual scam/link checks and a small browser privacy companion. The largest gaps are automatic prevention, threat intelligence, background service operation and the breadth of cloud-backed services. No percentage of parity or equivalent malware-detection rate is claimed.
+**VirusVaccine 0.3.0 does not have feature or protection parity with McAfee.** It implements useful local scanning, quarantine, manual scam/link checks, application firewall controls, experimental local media analysis and a small browser privacy companion. The largest gaps are automatic prevention, threat intelligence, background service operation and the breadth of cloud-backed services. No percentage of parity or equivalent malware-detection rate is claimed.
 
 ## Basis of comparison
 
@@ -12,7 +12,7 @@ McAfee documents antivirus, browser protection, privacy and identity services in
 
 “Implemented” means a VirusVaccine workflow works within the stated limits. “Partial” means materially narrower functionality. “Setup only” means the provider runs the service outside VirusVaccine. None of these labels asserts equal security effectiveness.
 
-| Feature | McAfee baseline | VirusVaccine 0.2.0 | Assessment |
+| Feature | McAfee baseline | VirusVaccine 0.3.0 | Assessment |
 | --- | --- | --- | --- |
 | Quick and custom scanning | Quick/full/custom scan workflows | Real ClamAV scanning of selected eligible files; quick scan covers Downloads, Desktop and temporary files | Implemented, different coverage and engine |
 | Full-machine scanning | Full-drive scan workflow | User selects drive/folder roots; traversal, file size and archive limits are reported | Partial |
@@ -20,11 +20,11 @@ McAfee documents antivirus, browser protection, privacy and identity services in
 | Detection results and history | Results/report screens | Real detections, skips/errors, history and local JSON export | Implemented |
 | Quarantine | Restore/delete workflow exposed | Confirmed AES-GCM encrypted quarantine, verified source removal, restore without overwrite | Implemented; hostile-process isolation unproven |
 | Definition updates | Security update workflow | Verified upstream engine and official signatures; user-triggered updates; stale definitions block scanning | Partial; no automatic update service |
-| Real-time file prevention | Continuous real-time scanning controls | Selected-folder scans after changes while app runs; execution is not blocked | Missing equivalent prevention |
+| Real-time file prevention | Continuous real-time scanning controls | Unsigned laboratory minifilter plus ClamAV agent/service source; no installed or validated production blocking | Development implementation; equivalent prevention missing |
 | Scheduling | Recurrence/day/time controls | Daily quick scan while app is alive; no persistent Windows service or wake scheduling | Partial |
-| Firewall | Outgoing connection protection and rule workflow | Read-only Windows firewall status and link to Windows settings | Missing enforcement |
+| Firewall | Outgoing connection protection and rule workflow | Create/remove owned outbound application rules through Windows Firewall, with UAC and actual profile/rule status | Partial; no independent packet-filter engine, automatic app reputation or inbound rule editor |
 | Scam messages | Automatic text/email checks and mobile setup | Manual paste, English-language warning-pattern checks; no mailbox/SMS access or trained classifier | Partial |
-| Video/deepfake and QR checks | Vendor advertises video alerts and QR checks | No video, audio or QR analysis | Missing |
+| Video/deepfake and QR checks | Vendor advertises video alerts and QR checks | Local face-image/video-frame and speech-segment ONNX analysis of selected files; no browser playback capture or QR analysis | Partial and experimental; accuracy unmeasured |
 | Malicious-site protection | WebAdvisor malware/phishing browsing protection | Offline URL-format inspection; no reputation feed, redirect inspection or phishing blocklist | Missing equivalent protection |
 | Tracker blocking | Privacy/browser feature family | Companion blocks third-party requests to twelve packaged ad/analytics domains, with pause/resume | Limited local implementation |
 | Tracker cleanup | Browser and system cleanup choices observed | Explicit cookie/cache cleanup in the companion's browser profile; no history, Recycle Bin or system-temp cleanup | Partial |
@@ -45,6 +45,8 @@ VirusVaccine's packaged desktop was exercised with an isolated application profi
 The browser companion was loaded into isolated Chromium. A production blocklist rule stopped a locally served request; disabling it allowed the request and enabling it blocked it again. Cache removal, cookie removal, default cookie retention, deletion confirmation and retention of unrelated local storage were checked against disposable fixtures. These checks establish the implementation works; they do not measure coverage against internet trackers or malicious websites.
 
 Existing scanner/quarantine checks cover harmless signature detection, encryption/restore integrity, changed-file preservation, cancellations, stale definitions and incomplete scan coverage. McAfee was inspected without changing its protective settings. No destructive McAfee cleanup, VPN connection change, identity enrollment or live-malware test was performed for this comparison. A completed McAfee efficacy or performance benchmark is not available.
+
+The application firewall passed a disposable-probe baseline/block/unblock test with the temporary rule removed. Actual ONNX audio/video inference, invalid-media rejection and cancellation passed. The native agent passed real ClamAV clean/detection/error tests using harmless fixtures. The driver compiled but was not loaded: kernel blocking, service lifecycle, interoperability and adversarial coverage remain unverified.
 
 ## Highest-impact gaps
 

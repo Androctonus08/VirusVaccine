@@ -1,6 +1,6 @@
 {
   "name": "virusvaccine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Independent, open-source desktop malware scanner powered by ClamAV",
   "main": "src/main/main.cjs",
   "author": "VirusVaccine contributors",
@@ -14,12 +14,15 @@
     "verify:pipeline": "node scripts/verify-pipeline.cjs",
     "review:ui": "node scripts/ui-review.cjs",
     "review:native": "node scripts/native-review.cjs",
-    "review:browser": "node scripts/browser-review.cjs"
+    "review:browser": "node scripts/browser-review.cjs",
+    "build:native": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "verify:guard": "node scripts/verify-guard.cjs",
+    "verify:media": "node scripts/verify-media.cjs"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "electron": "45.2.1",
-    "electron-builder": "26.18.0",
-    "@playwright/test": "1.63.0"
+    "electron-builder": "26.18.0"
   },
   "build": {
     "appId": "org.virusvaccine.desktop",
@@ -30,7 +33,11 @@
       "LICENSE",
       "THIRD_PARTY_NOTICES.txt",
       "package.json",
-      "!src/companion/_metadata/**/*"
+      "!src/companion/_metadata/**/*",
+      "licenses/**/*",
+      "!node_modules/onnxruntime-node/bin/napi-v6/darwin/**/*",
+      "!node_modules/onnxruntime-node/bin/napi-v6/linux/**/*",
+      "!node_modules/onnxruntime-node/bin/napi-v6/win32/arm64/**/*"
     ],
     "directories": {
       "output": "dist"
@@ -44,6 +51,12 @@
     },
     "portable": {
       "artifactName": "VirusVaccine-${version}-win-x64.exe"
-    }
+    },
+    "asarUnpack": [
+      "node_modules/onnxruntime-node/bin/**/*"
+    ]
+  },
+  "dependencies": {
+    "onnxruntime-node": "1.31.1"
   }
 }

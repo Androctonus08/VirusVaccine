@@ -30,8 +30,8 @@
     {
       "id": "real_time",
       "name": "Real-time protection and exclusions",
-      "implementation": "not implemented",
-      "design_requirement": "Expose only actual monitoring. A user-space folder watcher must be labeled as such; it is not a kernel on-access blocker."
+      "implementation": "laboratory driver and agent/service source; not active production protection",
+      "design_requirement": "Restrict current guard to a laboratory folder; report unsigned/unvalidated status. Signing, altitude assignment, isolated kernel validation, secure service deployment and coverage hardening are release gates."
     },
     {
       "id": "scheduled_scans",
@@ -54,8 +54,8 @@
     {
       "id": "firewall",
       "name": "Advanced Firewall",
-      "implementation": "not implemented",
-      "design_requirement": "Do not claim an independent firewall from antivirus file scanning. Treat network filtering as a separate subsystem and show unsupported status until implemented."
+      "implementation": "available: Windows Firewall outbound application controls",
+      "design_requirement": "Native executable selection, confirmation and UAC; manage only owned rules, show actual profiles and rules, never reset global policy."
     },
     {
       "id": "tracker_cleanup",
@@ -108,8 +108,8 @@
     {
       "id": "video_scams",
       "name": "Video/deepfake alerts",
-      "implementation": "not implemented",
-      "design_requirement": "Do not infer deepfake classification from ClamAV integration; this would be a distinct research and evaluation project."
+      "implementation": "partial: experimental local media-file analysis",
+      "design_requirement": "Use pinned ONNX audio and face-image models with bounded local decoding and visible sample coverage. No automatic call/browser monitoring or calibrated authenticity verdicts."
     },
     {
       "id": "updates",

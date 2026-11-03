@@ -12,11 +12,17 @@ const { Store } = require('./storage.cjs');
 const { key, within } = require('./files.cjs');
 const { securityStatus } = require('./system.cjs');
 const protection = require('./protection.cjs');
+const firewall = require('./firewall.cjs');
+const guard = require('./guard.cjs');
+const { Media } = require('./media.cjs');
 
 if (!app.isPackaged && process.env.VIRUSVACCINE_DATA_DIR) app.setPath('userData', path.resolve(process.env.VIRUSVACCINE_DATA_DIR));
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 else {
-  let window, engine, scanner, store, quarantine, tray, automationTimer;
+  let window, engine, scanner, store, quarantine, tray, automationTimer, media;
+  let firewallBusy = false;
+  let firewallState = {available:false,rules:[],profiles:[],message:'Reading firewall status'};
+  let guardState = {active:false,driver:'Checking',agent:'Checking',message:'Checking development driver status'};
   let quitting = false, initialized = false, launching = false, notice = null, backgroundNoticeShown = false;
   let system = { antivirus: [], firewall: [], message: 'Checking Windows security status' };
   let engineState = { installed: false, ready: false, busy: false, version: null, definitionsUpdatedAt: null, message: 'Checking scanning engine', progress: null };
@@ -31,7 +37,7 @@ else {
   function snapshot() {
     return { version: app.getVersion(), engine: engineState, scan: scanner?.state, history: store?.data?.history ?? [], quarantine: quarantine?.items ?? [],
       watch: { ...(store?.data?.watch ?? { enabled: false, folders: [] }), message: watchMessage }, schedule: store?.data?.schedule ?? { enabled: false, hour: 12, lastRun: null },
-      system, activities: store?.data?.activities ?? [], notice };
+      system, firewall: {...firewallState,busy:firewallBusy}, guard:guardState, media:media?.state, activities: store?.data?.activities ?? [], notice };
   }
   function emit() { if (window && !window.isDestroyed()) window.webContents.send('vaccine:state', snapshot()); }
   function failure(error) { notice = { type: 'error', message: error?.message || String(error) }; emit(); }
@@ -53,6 +59,7 @@ else {
     finally { launching = false; emit(); }
   }
   async function refreshSystem() { system = await securityStatus(); emit(); }
+  async function refreshProtection() { [firewallState,guardState] = await Promise.all([firewall.list(),guard.status()]); emit(); }
   function stopWatchers() { for (const item of watchers.values()) item.close(); watchers.clear(); pending.clear(); }
   async function setWatchers() {
     stopWatchers();
@@ -93,6 +100,39 @@ else {
     if (action === 'state:get') return snapshot();
     if (!initialized) throw new Error('VirusVaccine is still starting');
     notice = null;
+    if (action === 'protection:refresh') return background(refreshProtection());
+    if (action === 'firewall:block' || action === 'firewall:remove') {
+      if(firewallBusy) throw new Error('Finish the current firewall change first');
+      firewallBusy=true;emit();
+      try {
+        let result;
+        if(action === 'firewall:block') {
+          const selection=await dialog.showOpenDialog(window,{title:'Choose the application to block from outbound connections',properties:['openFile','dontAddToRecent'],filters:[{name:'Windows applications',extensions:['exe']}]});
+          if(selection.canceled || !selection.filePaths.length) return {cancelled:true};
+          const selected=await firewall.target(selection.filePaths[0]);
+          if(!await confirm('Block application connections','Block outbound network traffic for this application?',selected.path+'\n\nWindows will ask for administrator approval. Remove the VirusVaccine rule here to undo the block.'))return{cancelled:true};
+          result=await firewall.block(selected.path);
+        } else {
+          checkObject(payload);firewallState=await firewall.list();
+          const rule=firewallState.rules.find(item=>item.id===payload.id);if(!rule)throw new Error('Rule no longer exists');
+          if(!await confirm('Remove application block','Remove this VirusVaccine firewall rule?',rule.program+'\n\nOther firewall policies may still restrict this application.'))return{cancelled:true};
+          result=await firewall.remove(rule.id);
+        }
+        return result;
+      } finally {firewallBusy=false;await refreshProtection();}
+    }
+    if(action === 'media:install') {
+      if(media.state.busy)throw new Error('Media analysis is busy');
+      if(!await confirm('Set up local media analysis','Download the analysis models and decoder?','Approximately 546 MB will be downloaded from the pinned model and decoder releases. Analysis then runs on this computer. These experimental models can be wrong.'))return{cancelled:true};
+      return background(media.install());
+    }
+    if(action === 'media:analyze') {
+      if(media.state.busy)throw new Error('Media analysis is busy');
+      const selection=await dialog.showOpenDialog(window,{title:'Choose media to analyze locally',properties:['openFile','dontAddToRecent'],filters:[{name:'Media',extensions:['mp4','mov','mkv','webm','avi','wav','mp3','flac','ogg','aac','jpg','jpeg','png','webp','bmp']}]});
+      if(selection.canceled || !selection.filePaths.length)return{cancelled:true};
+      return background(media.analyze(selection.filePaths[0]));
+    }
+    if(action === 'media:cancel'){media.cancel();return{cancelled:true};}
     if (action === 'tools:message' || action === 'tools:link' || action === 'tools:clean-link') {
       checkObject(payload);
       return protection[action === 'tools:message' ? 'analyzeMessage' : action === 'tools:link' ? 'analyzeUrl' : 'cleanUrl'](payload.text);
@@ -179,7 +219,9 @@ else {
       await store.save(); emit();
       if (result.detections.length && Notification.isSupported()) new Notification({ title: 'VirusVaccine found a suspicious file', body: 'Open VirusVaccine to review the findings. No file has been moved automatically.' }).on('click', showWindow).show();
     } });
-    initialized = true; await setWatchers(); background(refreshSystem()); emit();
+    media = new Media(path.join(runtime,'media'),()=>emit());
+    await media.status();
+    initialized = true; await setWatchers(); background(refreshSystem()); background(refreshProtection()); emit();
     automationTimer = setInterval(() => { background(automate()); }, 15000);
   }
   app.whenReady().then(async () => {
@@ -196,7 +238,7 @@ else {
       try { return await handle(action, payload); } catch (error) { failure(error); throw new Error(error.message); }
     });
     window.on('close', event => {
-      if (!quitting && (scanner?.running || engineState.busy || store?.data?.watch.enabled || store?.data?.schedule.enabled)) {
+      if (!quitting && (scanner?.running || engineState.busy || media?.state.busy || firewallBusy || store?.data?.watch.enabled || store?.data?.schedule.enabled)) {
         event.preventDefault(); window.hide();
         if (!backgroundNoticeShown && Notification.isSupported()) { backgroundNoticeShown = true; new Notification({ title: 'VirusVaccine is running in the tray', body: 'Use the tray menu to open or quit. Scans and enabled monitoring continue while it is running.' }).on('click',showWindow).show(); }
       }
@@ -208,5 +250,5 @@ else {
   }).catch(error => { dialog.showErrorBox('VirusVaccine could not start', error.message); app.quit(); });
   app.on('second-instance', showWindow);
   app.on('window-all-closed', () => app.quit());
-  app.on('before-quit', () => { quitting = true; clearInterval(automationTimer); stopWatchers(); scanner?.cancel(); engine?.cancel(); });
+  app.on('before-quit', () => { quitting = true; clearInterval(automationTimer); stopWatchers(); scanner?.cancel(); engine?.cancel(); media?.cancel(); });
 }

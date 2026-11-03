@@ -1,6 +1,6 @@
 # Security scope
 
-VirusVaccine 0.2.0 is an early Windows x64 scanner. It has not undergone an independent security audit, malicious-corpus efficacy evaluation or adversarial tamper-resistance review. Do not disable an existing endpoint-security product to use it.
+VirusVaccine 0.3.0 is an early Windows x64 scanner. It has not undergone an independent security audit, malicious-corpus efficacy evaluation or adversarial tamper-resistance review. Do not disable an existing endpoint-security product to use it.
 
 ## Boundaries
 
@@ -14,6 +14,10 @@ VirusVaccine 0.2.0 is an early Windows x64 scanner. It has not undergone an inde
 - Message and link checks are bounded, offline heuristics, not a scam classifier or reputation service. Drafts are kept only in memory until cleared or the app exits. No safe verdict is returned. Suspicious text is rendered using text nodes, never HTML.
 - The separately installed browser companion uses a fixed third-party tracker ruleset and the browser's own cleanup API. Cookies are unselected by default; deletion requires explicit confirmation. It requests no access to page contents, no native messaging connection and no telemetry. A small blocklist is incomplete and can break sites; it can be paused. See [browser scope](docs/BROWSER.md).
 - Provider links are fixed official HTTPS destinations opened only after a button click. No provider credentials, VPN configurations or email addresses are collected. Provider-managed protection is not verified or represented as active by VirusVaccine.
+
+- Firewall mutation accepts a native-picked executable or a validated owned rule identifier. A fixed PowerShell program runs through UAC; it manages only the VirusVaccine rule group. It cannot turn profiles off, reset the firewall or edit another product's rules. Rules depend on Windows Firewall and other installed policies; status is not an efficacy guarantee.
+- Media assets have fixed upstream revisions, sizes and SHA-256 hashes. Decoder executables/libraries are checked against packaged digests, and model integrity is rechecked before analysis. Media parsing and inference run in a separate unprivileged process with bounded input size, time, sample count and decoder output. Decoder formats/protocols exclude playlists and network fetching. This process separation is not an OS sandbox against decoder exploits. Results are kept in memory and never uploaded.
+- Native guard source is a laboratory fork of Microsoft AvScan under MS-PL. It is not installed by the desktop app. The test scope, incomplete coverage, unsigned state, unauthenticated local ClamAV protocol and outstanding service/driver hardening are documented in [native guard scope](native/guard/README.md). It must not be represented as production prevention.
 
 ## Reporting a vulnerability
 
