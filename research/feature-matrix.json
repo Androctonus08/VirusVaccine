@@ -1,0 +1,151 @@
+{
+  "schema_version": 2,
+  "title": "VirusVaccine feature scope",
+  "scope": "Product design requirements and implementation status. No machine inventory, test run details, or private evidence is published.",
+  "features": [
+    {
+      "id": "dashboard",
+      "name": "Device dashboard and feature navigation",
+      "implementation": "available with documented limits",
+      "design_requirement": "Show actual engine availability, database age, active job and recent results; distinguish unavailable capabilities from working protection."
+    },
+    {
+      "id": "quick_scan",
+      "name": "Quick scan and job controls",
+      "implementation": "available with documented limits",
+      "design_requirement": "Provide bounded scan scope, accurate running/paused/cancelled/completed/error states, progress, failures and timestamps. Do not describe interrupted or errored scans as clean."
+    },
+    {
+      "id": "full_scan",
+      "name": "Full scan",
+      "implementation": "available with documented limits",
+      "design_requirement": "Let the user review the target volumes, bound traversal, skip symlinks/reparse points and report skipped or inaccessible files."
+    },
+    {
+      "id": "custom_scan",
+      "name": "Selected file or folder scan",
+      "implementation": "available with documented limits",
+      "design_requirement": "A native file/folder picker can provide independently implemented custom scans without copying the proprietary shell extension."
+    },
+    {
+      "id": "real_time",
+      "name": "Real-time protection and exclusions",
+      "implementation": "not implemented",
+      "design_requirement": "Expose only actual monitoring. A user-space folder watcher must be labeled as such; it is not a kernel on-access blocker."
+    },
+    {
+      "id": "scheduled_scans",
+      "name": "Scheduled scans",
+      "implementation": "available with documented limits",
+      "design_requirement": "Persist schedule settings and explain whether the app must remain open. Do not imply background service guarantees before implementing and testing them."
+    },
+    {
+      "id": "quarantine",
+      "name": "Quarantine review",
+      "implementation": "available with documented limits",
+      "design_requirement": "Quarantine only verified detections with recorded source identity, destination integrity checks and reversible metadata. Require explicit restore/delete confirmation; prevent overwrite and path substitution."
+    },
+    {
+      "id": "reports",
+      "name": "Security reports and history",
+      "implementation": "available with documented limits",
+      "design_requirement": "Persist append-only scan outcomes with clear coverage and errors, provide local report export and avoid false protection scores."
+    },
+    {
+      "id": "firewall",
+      "name": "Advanced Firewall",
+      "implementation": "not implemented",
+      "design_requirement": "Do not claim an independent firewall from antivirus file scanning. Treat network filtering as a separate subsystem and show unsupported status until implemented."
+    },
+    {
+      "id": "tracker_cleanup",
+      "name": "Tracker and temporary-file cleanup",
+      "implementation": "not implemented",
+      "design_requirement": "Offer a reviewable inventory and explicit consent before cleanup; default away from cookies/history that can log users out."
+    },
+    {
+      "id": "file_shredder",
+      "name": "File shredding",
+      "implementation": "not implemented",
+      "design_requirement": "If added, explain storage-specific limits and require explicit scoped deletion confirmation; do not promise secure erasure on SSDs or synced storage without evidence."
+    },
+    {
+      "id": "vpn",
+      "name": "Secure VPN",
+      "implementation": "not implemented",
+      "design_requirement": "VPN requires separately operated or integrated infrastructure. Do not present a cosmetic VPN toggle as working protection."
+    },
+    {
+      "id": "web_protection",
+      "name": "Per-browser web protection",
+      "implementation": "not implemented",
+      "design_requirement": "A browser extension and threat feed would be separate work. UI must distinguish not-installed, active and unavailable states."
+    },
+    {
+      "id": "password_manager",
+      "name": "Password manager",
+      "implementation": "not implemented",
+      "design_requirement": "Treat a password vault as a separate security product; do not store or import credentials during antivirus comparison."
+    },
+    {
+      "id": "identity_monitoring",
+      "name": "Identity monitoring",
+      "implementation": "not implemented",
+      "design_requirement": "Requires separate identity/breach services and user consent. Mark unavailable rather than fabricate a monitoring result."
+    },
+    {
+      "id": "text_scams",
+      "name": "Text-scam protection",
+      "implementation": "not implemented",
+      "design_requirement": "Keep mobile messaging analysis separate from the desktop file scanner."
+    },
+    {
+      "id": "email_scams",
+      "name": "Email-scam protection",
+      "implementation": "not implemented",
+      "design_requirement": "Requires an independently designed mail integration with narrow permissions and explicit user consent."
+    },
+    {
+      "id": "video_scams",
+      "name": "Video/deepfake alerts",
+      "implementation": "not implemented",
+      "design_requirement": "Do not infer deepfake classification from ClamAV integration; this would be a distinct research and evaluation project."
+    },
+    {
+      "id": "updates",
+      "name": "Version and update information",
+      "implementation": "available with documented limits",
+      "design_requirement": "Report engine and signature versions separately, verify downloads and show update failure or stale definitions plainly."
+    },
+    {
+      "id": "idle_tasks",
+      "name": "Idle-aware background work",
+      "implementation": "not implemented",
+      "design_requirement": "Keep scan CPU/memory use bounded and document any optional scheduling policy."
+    },
+    {
+      "id": "self_protection",
+      "name": "Access protection",
+      "implementation": "not implemented",
+      "design_requirement": "Do not describe an ordinary desktop app as tamper protected; signed services/drivers and a threat model are separate engineering work."
+    },
+    {
+      "id": "fake_notifications",
+      "name": "Misleading browser-notification detection",
+      "implementation": "not implemented",
+      "design_requirement": "Treat notification filtering as an optional browser subsystem; avoid global browser-setting changes."
+    },
+    {
+      "id": "notifications",
+      "name": "Notification preferences",
+      "implementation": "available with documented limits",
+      "design_requirement": "Separate security-result notifications from optional informational messages."
+    },
+    {
+      "id": "account_and_devices",
+      "name": "Account, subscription, devices and help",
+      "implementation": "not implemented",
+      "design_requirement": "An open-source local scanner can work without an account; do not reproduce proprietary subscriptions or cloud services as fake working features."
+    }
+  ]
+}

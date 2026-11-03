@@ -1,0 +1,33 @@
+VirusVaccine application code and original artwork: MIT; see LICENSE.
+
+ClamAV is an independent program, copyright its respective contributors and
+Cisco Systems, Inc. It is licensed under GPL version 2, with exceptions and
+separate dependency notices as described by its upstream distribution.
+VirusVaccine invokes the official clamscan and freshclam programs as separate
+processes. ClamAV binaries and definition databases are NOT bundled in this
+repository or the VirusVaccine portable executable. Setup downloads the
+official upstream Windows archive, verifies its pinned SHA-256 digest, and
+retains its included license notices in the engine installation directory.
+The MIT license does not apply to ClamAV or its databases.
+
+ClamAV release/source: https://github.com/Cisco-Talos/clamav/tree/clamav-1.5.4
+Official binary: https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4
+License: https://github.com/Cisco-Talos/clamav/blob/clamav-1.5.4/COPYING
+Documentation: https://docs.clamav.net/
+ClamAV is a registered trademark of Cisco Systems, Inc.
+
+Electron: MIT, copyright Electron contributors.
+https://github.com/electron/electron/blob/main/LICENSE
+The packaged Electron runtime includes LICENSE.electron.txt and
+LICENSES.chromium.html, covering Chromium and its third-party components.
+These notices remain in the portable application's embedded runtime.
+
+Development dependencies retain their own licenses; see package-lock.json
+and their upstream packages. They are not application runtime dependencies.
+
+REA was used as an analysis tool, not bundled into VirusVaccine.
+https://github.com/morluto/rea
+
+McAfee and its product names are trademarks of their owners. VirusVaccine is
+an independent project, is not affiliated with or endorsed by McAfee or Cisco,
+and contains no McAfee source code, binaries, copied artwork or account data.
